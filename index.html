@@ -1,0 +1,574 @@
+<!doctype html>
+<html lang="th" class="h-full">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ระบบเช็คสต็อก ต๊ะต่อนยอน Eatery&Cafe'</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    body { box-sizing: border-box; }
+    * { font-family: 'Sarabun', sans-serif; }
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    input[type="number"] { -moz-appearance: textfield; }
+    .fade-in { animation: fadeIn 0.3s ease-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .slide-in { animation: slideIn 0.3s ease-out; }
+    @keyframes slideIn { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
+    .lang-btn{
+      width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:8px;
+      font-size:12px;font-weight:500;cursor:pointer;transition:all 0.2s;border:2px solid transparent;
+    }
+    .lang-btn.active{ background-color:#ea580c;color:white;border-color:#ea580c; }
+    .lang-btn:not(.active){ background-color:white;color:#ea580c;border-color:#f3f4f6; }
+    .lang-selector{ display:flex;gap:4px;padding:6px;background:white;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,0.1); }
+    .trend-up{ color:#ef4444; }
+    .trend-down{ color:#22c55e; }
+    .trend-neutral{ color:#6b7280; }
+    .qty-invalid{ border-color:#ef4444 !important; background:#fff1f2; }
+  </style>
+  <style>@view-transition { navigation: auto; }</style>
+</head>
+
+<body class="h-full bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50">
+  <div id="app" class="h-full w-full overflow-auto">
+    <div class="fixed top-4 right-4 z-50 lang-selector">
+      <button onclick="setLanguage('th')" class="lang-btn active" id="btn-th" title="ไทย">ไทย</button>
+      <button onclick="setLanguage('lo')" class="lang-btn" id="btn-lo" title="ລາວ">ລາວ</button>
+      <button onclick="setLanguage('my')" class="lang-btn" id="btn-my" title="မြန်မာ">မြန်</button>
+    </div>
+
+    <div id="home-page" class="min-h-full p-4 md:p-6 pt-20">
+      <div class="max-w-lg mx-auto">
+        <div class="flex items-center justify-between mb-8">
+          <div>
+            <h1 id="shop-title" class="text-2xl md:text-3xl font-bold text-orange-800">☕ ต๊ะต่อนยอน Eatery&Cafe'</h1>
+            <p id="txt-daily-check" class="text-orange-600 text-sm mt-1">เช็คสต็อกประจำวัน</p>
+          </div>
+          <button onclick="showHistory()" class="flex items-center gap-2 bg-white px-4 py-2 rounded-xl shadow-md hover:shadow-lg transition-all text-orange-700 font-medium">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span id="txt-history">ประวัติ</span>
+          </button>
+        </div>
+
+        <div class="bg-white rounded-2xl p-4 shadow-md mb-6">
+          <p id="txt-date2" class="text-gray-500 text-sm">วันที่</p>
+          <p id="current-date" class="text-lg font-semibold text-gray-800"></p>
+        </div>
+
+        <div class="space-y-4">
+          <button onclick="selectCategory('วัตถุดิบกาแฟ')" class="w-full bg-gradient-to-r from-orange-700 to-orange-800 text-white p-5 rounded-2xl shadow-lg hover:shadow-xl transition-all transform hover:scale-[1.02] active:scale-[0.98]">
+            <div class="flex items-center gap-4">
+              <div class="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center text-3xl">🫘</div>
+              <div class="text-left">
+                <p id="cat-coffee" class="text-xl font-bold">วัตถุดิบกาแฟ</p>
+                <p id="cat-coffee-desc" class="text-orange-100 text-sm">เช็คเมล็ดกาแฟ</p>
+              </div>
+              <svg class="w-6 h-6 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+              </svg>
+            </div>
+          </button>
+
+          <button onclick="selectCategory('ผัก')" class="w-full bg-gradient-to-r from-green-500 to-green-600 text-white p-5 rounded-2xl shadow-lg hover:shadow-xl transition-all transform hover:scale-[1.02] active:scale-[0.98]">
+            <div class="flex items-center gap-4">
+              <div class="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center text-3xl">🥬</div>
+              <div class="text-left">
+                <p id="cat-veg" class="text-xl font-bold">ผัก</p>
+                <p id="cat-veg-desc" class="text-green-100 text-sm">เช็คสต็อกผัก</p>
+              </div>
+              <svg class="w-6 h-6 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+              </svg>
+            </div>
+          </button>
+
+          <button onclick="selectCategory('น้ำ')" class="w-full bg-gradient-to-r from-cyan-500 to-cyan-600 text-white p-5 rounded-2xl shadow-lg hover:shadow-xl transition-all transform hover:scale-[1.02] active:scale-[0.98]">
+            <div class="flex items-center gap-4">
+              <div class="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center text-3xl">🥤</div>
+              <div class="text-left">
+                <p id="cat-drink" class="text-xl font-bold">น้ำ</p>
+                <p id="cat-drink-desc" class="text-cyan-100 text-sm">เช็คสต็อกเครื่องดื่ม</p>
+              </div>
+              <svg class="w-6 h-6 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+              </svg>
+            </div>
+          </button>
+
+          <button onclick="selectCategory('เนื้อสัตว์')" class="w-full bg-gradient-to-r from-red-500 to-red-600 text-white p-5 rounded-2xl shadow-lg hover:shadow-xl transition-all transform hover:scale-[1.02] active:scale-[0.98]">
+            <div class="flex items-center gap-4">
+              <div class="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center text-3xl">🍖</div>
+              <div class="text-left">
+                <p id="cat-meat" class="text-xl font-bold">เนื้อสัตว์</p>
+                <p id="cat-meat-desc" class="text-red-100 text-sm">เช็คสต็อกเนื้อสัตว์</p>
+              </div>
+              <svg class="w-6 h-6 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+              </svg>
+            </div>
+          </button>
+
+          <button onclick="selectCategory('ของสิ้นเปลือง')" class="w-full bg-gradient-to-r from-amber-500 to-amber-600 text-white p-5 rounded-2xl shadow-lg hover:shadow-xl transition-all transform hover:scale-[1.02] active:scale-[0.98]">
+            <div class="flex items-center gap-4">
+              <div class="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center text-3xl">🧻</div>
+              <div class="text-left">
+                <p id="cat-consumable" class="text-xl font-bold">ของสิ้นเปลือง</p>
+                <p id="cat-consumable-desc" class="text-amber-100 text-sm">เช็คสต็อกของใช้</p>
+              </div>
+              <svg class="w-6 h-6 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+              </svg>
+            </div>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div id="name-page" class="min-h-full p-4 md:p-6 hidden">
+      <div class="max-w-lg mx-auto fade-in">
+        <button onclick="goHome()" class="flex items-center gap-2 text-orange-700 mb-6 hover:text-orange-800 transition-colors">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+          </svg>
+          <span id="txt-back-home">กลับหน้าหลัก</span>
+        </button>
+        <div class="bg-white rounded-2xl p-6 shadow-lg">
+          <div id="category-badge" class="inline-flex items-center gap-2 px-4 py-2 rounded-full text-white text-sm font-medium mb-4"></div>
+          <h2 id="txt-staff-name-title" class="text-xl font-bold text-gray-800 mb-2">ผู้เช็คสต็อก</h2>
+          <div class="space-y-4">
+            <div>
+              <label id="txt-full-name-label" class="block text-sm font-medium text-gray-700 mb-2">ชื่อ-นามสกุล</label>
+              <input type="text" id="checker-name" placeholder="กรอกชื่อของคุณ" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-orange-500 focus:outline-none transition-colors text-lg">
+            </div>
+            <button onclick="startChecking()" id="btn-start-checking" class="w-full bg-orange-500 text-white py-4 rounded-xl font-semibold text-lg hover:bg-orange-600 transition-colors shadow-md hover:shadow-lg">เริ่มเช็คสต็อก</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="stock-page" class="min-h-full p-4 md:p-6 hidden">
+      <div class="max-w-2xl mx-auto fade-in">
+        <div class="flex items-center justify-between mb-6">
+          <button onclick="goToNamePage()" class="flex items-center gap-2 text-orange-700 hover:text-orange-800 transition-colors">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+            </svg>
+            <span id="txt-back">กลับ</span>
+          </button>
+          <div id="stock-category-badge" class="px-4 py-2 rounded-full text-white text-sm font-medium"></div>
+        </div>
+        <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+          <div class="bg-gradient-to-r from-orange-500 to-orange-600 p-4 text-white">
+            <p class="text-sm opacity-90"><span id="txt-staff-checker">ผู้เช็คสต็อก:</span> <span id="display-checker-name" class="font-semibold"></span></p>
+            <p class="text-sm opacity-90"><span id="txt-date-label">วันที่:</span> <span id="display-date" class="font-semibold"></span></p>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th id="txt-item" class="px-4 py-3 text-left text-sm font-semibold text-gray-700">รายการ</th>
+                  <th id="txt-quantity" class="px-4 py-3 text-center text-sm font-semibold text-gray-700 w-28">จำนวน</th>
+                  <th id="txt-unit" class="px-4 py-3 text-center text-sm font-semibold text-gray-700 w-28">หน่วย</th>
+                  <th id="txt-note" class="px-4 py-3 text-left text-sm font-semibold text-gray-700">หมายเหตุ</th>
+                </tr>
+              </thead>
+              <tbody id="stock-table-body" class="divide-y divide-gray-100"></tbody>
+            </table>
+          </div>
+          <div class="p-4 bg-gray-50">
+            <button id="save-btn" onclick="saveStock()" class="w-full bg-gradient-to-r from-green-500 to-green-600 text-white py-4 rounded-xl font-semibold text-lg hover:from-green-600 hover:to-green-700 transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+              <span id="txt-save">บันทึกข้อมูล</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="history-page" class="min-h-full p-4 md:p-6 hidden">
+      <div class="max-w-2xl mx-auto fade-in">
+        <button onclick="goHome()" class="flex items-center gap-2 text-orange-700 mb-6 hover:text-orange-800 transition-colors">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+          </svg>
+          <span id="txt-back-home2">กลับหน้าหลัก</span>
+        </button>
+        <h2 id="txt-history-title" class="text-2xl font-bold text-gray-800 mb-4">📋 ประวัติการเช็คสต็อก</h2>
+        <div class="bg-white rounded-2xl p-4 shadow-md mb-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label id="txt-select-date" class="block text-sm font-medium text-gray-700 mb-2">เลือกวันที่</label>
+              <input type="date" id="filter-date" onchange="filterHistory()" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-orange-500 focus:outline-none transition-colors">
+            </div>
+            <div>
+              <label id="txt-category-label" class="block text-sm font-medium text-gray-700 mb-2">หมวดหมู่</label>
+              <select id="filter-category" onchange="filterHistory()" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-orange-500 focus:outline-none transition-colors">
+                <option value="" id="opt-all">ทั้งหมด</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div id="history-list" class="space-y-4"></div>
+        <div id="no-history" class="hidden text-center py-12">
+          <p id="txt-no-history" class="text-gray-500">ไม่พบประวัติการเช็คสต็อก</p>
+        </div>
+      </div>
+    </div>
+
+    <div id="history-detail-page" class="min-h-full p-4 md:p-6 hidden">
+      <div class="max-w-2xl mx-auto fade-in">
+        <button onclick="showHistory()" class="flex items-center gap-2 text-orange-700 mb-6 hover:text-orange-800 transition-colors">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+          </svg>
+          <span id="txt-back-history">กลับหน้าประวัติ</span>
+        </button>
+        <div id="history-detail-content" class="bg-white rounded-2xl shadow-lg overflow-hidden"></div>
+      </div>
+    </div>
+
+    <div id="toast" class="fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-6 py-3 rounded-xl shadow-lg hidden transition-all duration-300 flex items-center gap-2">
+      <span id="toast-message">บันทึกสำเร็จ!</span>
+    </div>
+  </div>
+
+  <script>
+    const GOOGLE_SHEET_WEBAPP_URL = ""; 
+    let currentLanguage = 'th';
+    let currentCategory = '';
+    let checkerName = '';
+    let allRecords = [];
+
+    const translations = {
+      th: {
+        dailyCheck: 'เช็คสต็อกประจำวัน',
+        history: 'ประวัติ',
+        coffee: 'วัตถุดิบกาแฟ', coffeeDesc: 'เช็คเมล็ดกาแฟ',
+        vegetable: 'ผัก', vegetableDesc: 'เช็คสต็อกผัก',
+        water: 'น้ำ', waterDesc: 'เช็คสต็อกเครื่องดื่ม',
+        meat: 'เนื้อสัตว์', meatDesc: 'เช็คสต็อกเนื้อสัตว์',
+        consumable: 'ของสิ้นเปลือง', consumableDesc: 'เช็คสต็อกของใช้',
+        backHome: 'กลับหน้าหลัก', staffName: 'ผู้เช็คสต็อก',
+        fullName: 'ชื่อ-นามสกุล', startChecking: 'เริ่มเช็คสต็อก',
+        item: 'รายการ', quantity: 'จำนวน', unit: 'หน่วย', note: 'หมายเหตุ',
+        save: 'บันทึกข้อมูล', historyTitle: 'ประวัติการเช็คสต็อก',
+        selectDate: 'เลือกวันที่', category: 'หมวดหมู่', all: 'ทั้งหมด',
+        staffChecker: 'ผู้เช็คสต็อก:', date: 'วันที่:', noHistory: 'ไม่พบประวัติ',
+        saved: 'บันทึกสำเร็จ!', error: 'เกิดข้อผิดพลาด', back: 'กลับ', backHistory: 'กลับหน้าประวัติ',
+        compared: 'เทียบรอบก่อน', changeLabel: 'เปลี่ยน', changePctLabel: '%'
+      },
+      lo: {
+        dailyCheck: 'ກວດສະຕ໋ອກປະຈໍາວັນ',
+        history: 'ປະຫວັດ',
+        coffee: 'ວັດຖຸດິບກາເຟ', coffeeDesc: 'ກວດເມັດກາເຟ',
+        vegetable: 'ຜັກ', vegetableDesc: 'ກວດສະຕ໋ອກຜັກ',
+        water: 'ນ້ຳ', waterDesc: 'ກວດສະຕ໋ອກນ້ຳ',
+        meat: 'ຊີ້ນສັດ', meatDesc: 'ກວດສະຕ໋ອກຊີ້ນສັດ',
+        consumable: 'ຂອງໃຊ້ໝົດເປືອງ', consumableDesc: 'ກວດສະຕ໋ອກຂອງໃຊ້',
+        backHome: 'ກັບໜ້າຫຼັກ', staffName: 'ຜູ້ເຊັກສະຕ໋ອກ',
+        fullName: 'ຊື່-ນາມສະກຸນ', startChecking: 'ເລີ່ມກວດສະຕ໋ອກ',
+        item: 'ລາຍການ', quantity: 'ຈໍານວນ', unit: 'ໜ່ວຍ', note: 'ໝາຍເຫດ',
+        save: 'ບັນທຶກຂໍ້ມູນ', historyTitle: 'ປະຫວັດການກວດສະຕ໋ອກ',
+        selectDate: 'ເລືອກວັນທີ', category: 'ໝວດໝູ່', all: 'ທັງໝົດ',
+        staffChecker: 'ຜູ້ເຊັກສະຕ໋ອກ:', date: 'ວັນທີ:', noHistory: 'ບໍ່ພົບປະຫວັດ',
+        saved: 'ບັນທຶກສໍາເລັດ!', error: 'ເກີດຂໍ້ຜິດພາດ', back: 'ກັບ', backHistory: 'ກັບໜ້າປະຫວັດ',
+        compared: 'ທຽບກັບກ່ອນ', changeLabel: 'ປ່ຽນແປງ', changePctLabel: '%'
+      },
+      my: {
+        dailyCheck: 'နေ့စဉ်စတော့စစ်ခြင်း',
+        history: 'မှတ်တမ်း',
+        coffee: 'ကော်ဖီကုန်ကြမ်း', coffeeDesc: 'ကော်ဖီစေ့စစ်ဆေးရန်',
+        vegetable: 'ဟင်းသီးဟင်းရွက်', vegetableDesc: 'ဟင်းသီးဟင်းရွက်စတော့စစ်ခြင်း',
+        water: 'အချိုရည်', waterDesc: 'အချိုရည်စတော့စစ်ခြင်း',
+        meat: 'အသား', meatDesc: 'အသားစတော့စစ်ခြင်း',
+        consumable: 'အသုံးကုန်ပစ္စည်း', consumableDesc: 'အသုံးကုန်ပစ္စည်းစတော့စစ်ခြင်း',
+        backHome: 'ပင်မစာမျက်နှာသို့ပြန်မည်', staffName: 'စတော့စစ်သူ',
+        fullName: 'အမည်', startChecking: 'စတော့စစ်ခြင်းစတင်မည်',
+        item: 'ပစ္စည်း', quantity: 'အရေအတွက်', unit: 'ယူနစ်', note: 'မှတ်ချက်',
+        save: 'အချက်အလက်သိမ်းမည်', historyTitle: 'စတော့စစ်ဆေးမှုမှတ်တမ်း',
+        selectDate: 'ရက်စွဲရွေးပါ', category: 'အမျိုးအစား', all: 'အားလုံး',
+        staffChecker: 'စတော့စစ်သူ:', date: 'ရက်စွဲ:', noHistory: 'မှတ်တမ်းမရှိပါ',
+        saved: 'သိမ်းပြီးပါပြီ!', error: 'အမှားဖြစ်ပါသည်', back: 'နောက်သို့', backHistory: 'မှတ်တမ်းသို့ပြန်မည်',
+        compared: 'ယခင်နှင့်နှိုင်းယှဉ်ချက်', changeLabel: 'ပြောင်းလဲမှု', changePctLabel: '%'
+      }
+    };
+
+    const stockItems = {
+      "วัตถุดิบกาแฟ": [
+        { name: "เม็ดกาแฟร้าน (เย็น)", unit: "ถุง/กรัม" },
+        { name: "เม็ดกาแฟร้าน (ร้อน)", unit: "ถุง/กรัม" },
+        { name: "เม็ดกาแฟคั่วเข้ม", unit: "ถุง/กรัม" }
+      ],
+      "ผัก": [
+        { name: "ผักผลัด", unit: "กรัม/กิโลกรัม" },
+        { name: "มะนาว", unit: "กรัม/กิโลกรัม" },
+        { name: "แตงกวา", unit: "กรัม/กิโลกรัม" },
+        { name: "ใบกระเพรา", unit: "กรัม/กิโลกรัม" },
+        { name: "ใบโหรพา", unit: "กรัม/กิโลกรัม" }
+      ],
+      "น้ำ": [
+        { name: "โค้ก", unit: "กระป๋อง/แพ็ค" },
+        { name: "โค้ก No Sugar", unit: "กระป๋อง/แพ็ค" },
+        { name: "โซดา", unit: "ขวด/ลัง" },
+        { name: "น้ำดื่ม", unit: "ขวด/แพ็ค" }
+      ],
+      "เนื้อสัตว์": [
+        { name: "ไก่", unit: "กรัม/กิโลกรัม" },
+        { name: "หมู", unit: "กรัม/กิโลกรัม" },
+        { name: "เนื้อ", unit: "กรัม/กิโลกรัม" }
+      ],
+      "ของสิ้นเปลือง": [
+        { name: "ทิชชู่ป๊อปอัพ", unit: "แพ็ค" },
+        { name: "ตะเกียบ", unit: "คู่" }
+      ]
+    };
+
+    const ITEM_I18N = {
+      lo: {
+        "เม็ดกาแฟร้าน (เย็น)": "ເມັດກາເຟຮ້ານ (ເຢັນ)", "เม็ดกาแฟร้าน (ร้อน)": "ເມັດກາເຟຮ້ານ (ຮ້ອນ)", "เม็ดกาแฟคั่วเข้ม": "ເມັດກາເຟຂົ້ວເຂັ້ມ",
+        "ผักผลัด": "ຜັກຜັດ", "มะนาว": "ໝາກນາວ", "แตงกวา": "ໝາກແຕງ", "ใบกระเพรา": "ໃບກະເພົາ", "ใบโหรพา": "ໃບໂຫລະພາ",
+        "โค้ก": "ໂຄ້ກ", "โซดา": "ໂຊດາ", "น้ำดื่ม": "ນ້ຳດື່ມ", "ไก่": "ໄກ່", "หมู": "ໝູ", "เนื้อ": "ຊີ້ນ", "ทิชชู่ป๊อปอัพ": "ທິດຊູ່", "ตะเกียบ": "ຕະກຽບ"
+      },
+      my: {
+        "เม็ดกาแฟร้าน (เย็น)": "ကော်ဖီစေ့ (အေး)", "เม็ดกาแฟร้าน (ร้อน)": "ကော်ဖီစေ့ (ပူ)", "เม็ดกาแฟคั่วเข้ม": "ကော်ဖီစေ့အပြင်းစား",
+        "ผักผลัด": "ဟင်းရွက်ကြော်", "มะนาว": "သံပုရာသီး", "แตงกวา": "သခွားသီး", "ใบกระเพรา": "ပင်စိမ်းရွက်", "ใบโหรพา": "ဟင်းစားပင်စိမ်း",
+        "โค้ก": "ကိုကာကိုလာ", "โซดา": "ဆိုဒါ", "น้ำดื่ม": "သောက်ရေ", "ไก่": "ကြက်သား", "หมู": "ဝက်သား", "เนื้อ": "အမဲသား", "ทิชชู่ป๊อปอัพ": "တစ်ရှူး", "ตะเกียบ": "တူ"
+      }
+    };
+
+    const UNIT_I18N = {
+      lo: { "กรัม": "ກຣາມ", "กิโลกรัม": "ກິໂລກຣາມ", "ถุง": "ຖົງ", "กระป๋อง": "ກະປ໋ອງ", "แพ็ค": "ແພັກ", "ขวด": "ຂວດ", "ลัง": "ລັງ", "คู่": "ຄູ່" },
+      my: { "กรัม": "ဂရမ်", "กิโลกรัม": "ကီလိုဂရမ်", "ถุง": "အိတ်", "กระป๋อง": "ဗူး", "แพ็ค": "ပက်", "ขวด": "ပုလင်း", "ลัง": "သေတ္တာ", "คู่": "စုံ" }
+    };
+
+    function tItem(th) { return (ITEM_I18N[currentLanguage] && ITEM_I18N[currentLanguage][th]) || th; }
+    function tUnit(th) { return (UNIT_I18N[currentLanguage] && UNIT_I18N[currentLanguage][th]) || th; }
+    function tCategory(th) {
+        const map = {"วัตถุดิบกาแฟ":"coffee","ผัก":"vegetable","น้ำ":"water","เนื้อสัตว์":"meat","ของสิ้นเปลือง":"consumable"};
+        return translations[currentLanguage][map[th]] || th;
+    }
+
+    // --- Conversion Logic for History Page ---
+    function normalizeQtyToBase(qty, unitSelected, itemName) {
+      const n = Number(qty);
+      if (isNaN(n)) return { qty: 0, unit: unitSelected };
+
+      // 1. กรัม -> กิโลกรัม
+      if (unitSelected === "กรัม") return { qty: n / 1000, unit: "กิโลกรัม" };
+      
+      // 2. ลัง -> ขวด (1 ลัง = 24 ขวด)
+      if (unitSelected === "ลัง") return { qty: n * 24, unit: "ขวด" };
+
+      // 3. ถุง -> กรัม (1 ถุง = 500 กรัม สำหรับกาแฟ)
+      if (unitSelected === "ถุง" && itemName.includes("เม็ดกาแฟ")) return { qty: n * 500, unit: "กรัม" };
+
+      return { qty: n, unit: unitSelected };
+    }
+
+    function setLanguage(lang) {
+      currentLanguage = lang;
+      document.querySelectorAll(".lang-btn").forEach(btn => btn.classList.remove("active"));
+      document.getElementById("btn-" + lang).classList.add("active");
+      updateUI();
+    }
+
+    function updateUI() {
+      const t = translations[currentLanguage];
+      document.getElementById("txt-daily-check").textContent = t.dailyCheck;
+      document.getElementById("txt-history").textContent = t.history;
+      document.getElementById("cat-coffee").textContent = t.coffee;
+      document.getElementById("cat-coffee-desc").textContent = t.coffeeDesc;
+      document.getElementById("cat-veg").textContent = t.vegetable;
+      document.getElementById("cat-veg-desc").textContent = t.vegetableDesc;
+      document.getElementById("cat-drink").textContent = t.water;
+      document.getElementById("cat-drink-desc").textContent = t.waterDesc;
+      document.getElementById("cat-meat").textContent = t.meat;
+      document.getElementById("cat-meat-desc").textContent = t.meatDesc;
+      document.getElementById("cat-consumable").textContent = t.consumable;
+      document.getElementById("cat-consumable-desc").textContent = t.consumableDesc;
+      
+      // Update History Category Filter
+      const filter = document.getElementById("filter-category");
+      filter.innerHTML = `<option value="">${t.all}</option>` + 
+        Object.keys(stockItems).map(c => `<option value="${c}">${tCategory(c)}</option>`).join("");
+    }
+
+    function showPage(id) {
+      document.querySelectorAll('#app > div:not(.lang-selector)').forEach(p => p.classList.add('hidden'));
+      document.getElementById(id).classList.remove('hidden');
+    }
+
+    function goHome() { showPage("home-page"); }
+    function goToNamePage() { showPage("name-page"); }
+
+    function selectCategory(cat) {
+      currentCategory = cat;
+      const badge = document.getElementById("category-badge");
+      badge.textContent = tCategory(cat);
+      badge.className = "inline-flex items-center gap-2 px-4 py-2 rounded-full text-white text-sm font-medium mb-4 " + 
+        (cat === "ผัก" ? "bg-green-500" : cat === "น้ำ" ? "bg-cyan-500" : cat === "เนื้อสัตว์" ? "bg-red-500" : cat === "วัตถุดิบกาแฟ" ? "bg-orange-800" : "bg-amber-500");
+      showPage("name-page");
+    }
+
+    function startChecking() {
+      checkerName = document.getElementById("checker-name").value.trim();
+      if (!checkerName) return alert("กรุณากรอกชื่อ / Please enter name");
+      document.getElementById("display-checker-name").textContent = checkerName;
+      document.getElementById("display-date").textContent = new Date().toLocaleDateString();
+      document.getElementById("stock-category-badge").textContent = tCategory(currentCategory);
+      renderStockTable();
+      showPage("stock-page");
+    }
+
+    function renderStockTable() {
+      const tbody = document.getElementById("stock-table-body");
+      tbody.innerHTML = stockItems[currentCategory].map((item, idx) => {
+        const units = item.unit.split('/');
+        const unitHtml = units.length > 1 
+          ? `<select class="unit-select border rounded p-1">${units.map(u => `<option value="${u}">${tUnit(u)}</option>`).join("")}</select>`
+          : `<span class="unit-text">${tUnit(item.unit)}</span>`;
+        
+        return `
+          <tr class="hover:bg-orange-50 transition-colors">
+            <td class="px-4 py-3 font-medium">${tItem(item.name)}</td>
+            <td class="px-4 py-3"><input type="text" class="qty-input w-full border-2 rounded-lg text-center p-2" placeholder="0"></td>
+            <td class="px-4 py-3 text-center">${unitHtml}</td>
+            <td class="px-4 py-3"><input type="text" class="note-input w-full border-2 rounded-lg p-2" placeholder="-"></td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    function saveStock() {
+      const rows = document.querySelectorAll("#stock-table-body tr");
+      const items = [];
+      let allFilled = true;
+
+      rows.forEach((row, i) => {
+        const rawQty = row.querySelector(".qty-input").value;
+        const unit = row.querySelector(".unit-select") ? row.querySelector(".unit-select").value : row.querySelector(".unit-text").textContent;
+        const note = row.querySelector(".note-input").value;
+        const itemName = stockItems[currentCategory][i].name;
+
+        if (!rawQty) allFilled = false;
+        
+        // Apply Conversion for the data object
+        const norm = normalizeQtyToBase(rawQty, unit, itemName);
+
+        items.push({ 
+          name: itemName, 
+          quantity: norm.qty, 
+          unit: norm.unit, 
+          unit_input: unit, 
+          quantity_raw: rawQty,
+          note: note 
+        });
+      });
+
+      if (!allFilled) return alert("กรุณากรอกจำนวนให้ครบ / Please fill all quantities");
+
+      const record = {
+        id: Date.now(),
+        category: currentCategory,
+        checker_name: checkerName,
+        date: new Date().toISOString(),
+        items: JSON.stringify(items)
+      };
+
+      allRecords.unshift(record);
+      localStorage.setItem("stock_records", JSON.stringify(allRecords));
+      
+      showToast(translations[currentLanguage].saved);
+      setTimeout(goHome, 1000);
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById("toast");
+      document.getElementById("toast-message").textContent = msg;
+      toast.classList.remove("hidden");
+      setTimeout(() => toast.classList.add("hidden"), 2000);
+    }
+
+    function showHistory() {
+      allRecords = JSON.parse(localStorage.getItem("stock_records") || "[]");
+      renderHistory();
+      showPage("history-page");
+    }
+
+    function filterHistory() { renderHistory(); }
+
+    function renderHistory() {
+      const list = document.getElementById("history-list");
+      const filterDate = document.getElementById("filter-date").value;
+      const filterCat = document.getElementById("filter-category").value;
+
+      let filtered = allRecords;
+      if (filterDate) filtered = filtered.filter(r => r.date.startsWith(filterDate));
+      if (filterCat) filtered = filtered.filter(r => r.category === filterCat);
+
+      if (filtered.length === 0) {
+        list.innerHTML = "";
+        document.getElementById("no-history").classList.remove("hidden");
+        return;
+      }
+
+      document.getElementById("no-history").classList.add("hidden");
+      list.innerHTML = filtered.map(r => `
+        <div onclick="showDetail(${r.id})" class="bg-white p-4 rounded-xl shadow cursor-pointer hover:shadow-md transition-all">
+          <div class="flex justify-between items-center">
+            <div>
+              <p class="font-bold text-orange-800">${tCategory(r.category)}</p>
+              <p class="text-sm text-gray-500">${r.checker_name} | ${new Date(r.date).toLocaleString()}</p>
+            </div>
+            <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" stroke-width="2"/></svg>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    function showDetail(id) {
+      const record = allRecords.find(r => r.id === id);
+      const items = JSON.parse(record.items);
+      const t = translations[currentLanguage];
+
+      document.getElementById("history-detail-content").innerHTML = `
+        <div class="bg-orange-600 p-4 text-white">
+          <h3 class="font-bold">${tCategory(record.category)}</h3>
+          <p class="text-xs">${record.checker_name} | ${new Date(record.date).toLocaleString()}</p>
+        </div>
+        <table class="w-full text-sm">
+          <thead class="bg-gray-100">
+            <tr>
+              <th class="p-2 text-left">${t.item}</th>
+              <th class="p-2 text-center">${t.quantity}</th>
+              <th class="p-2 text-center">${t.unit}</th>
+              <th class="p-2 text-left">${t.note}</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${items.map(it => `
+              <tr class="border-b">
+                <td class="p-2">${tItem(it.name)}</td>
+                <td class="p-2 text-center font-bold text-orange-700">${it.quantity}</td>
+                <td class="p-2 text-center text-gray-500">${tUnit(it.unit)}</td>
+                <td class="p-2 text-gray-400">${it.note || "-"}</td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      `;
+      showPage("history-detail-page");
+    }
+
+    // Init
+    updateUI();
+    document.getElementById("current-date").textContent = new Date().toLocaleDateString();
+  </script>
+</body>
+</html>
